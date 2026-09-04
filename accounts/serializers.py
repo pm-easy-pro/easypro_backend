@@ -259,6 +259,7 @@ class AgentCompanyManageSerializer(serializers.ModelSerializer):
             email=email or "",
             password=password,
             phone=phone or "",
+            profile_completed=True,
         )
 
     def _apply_admin(self, company, validated_data):

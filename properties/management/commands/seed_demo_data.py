@@ -405,6 +405,7 @@ class Command(BaseCommand):
         company_admin.phone = company_admin.phone or "7711-2000"
         company_admin.is_staff = False
         company_admin.is_superuser = False
+        company_admin.profile_completed = True
         company_admin.set_password("demo1234")
         company_admin.save()
         Agent.objects.filter(user=company_admin).exclude(pk=remax_org.pk).update(user=None)
