@@ -10,7 +10,7 @@ Production API: **https://api.easypro.mn**
 - Ubuntu 22.04 / 24.04 LTS
 - `api.easypro.mn` DNS A record → серверийн public IP
 - SSH хандалт (`ubuntu` хэрэглэгч)
-- PostgreSQL (локал эсвэл managed DB)
+- MySQL (production) / SQLite (local dev)
 
 ---
 
@@ -21,28 +21,29 @@ sudo apt update && sudo apt upgrade -y
 
 sudo apt install -y \
   python3 python3-pip python3-venv \
-  postgresql postgresql-contrib \
+  mysql-server \
   nginx \
   certbot python3-certbot-nginx \
-  git libpq-dev
+  git pkg-config
 ```
 
 ---
 
-## 3. PostgreSQL тохируулах
+## 3. MySQL тохируулах
 
 ```bash
-sudo -u postgres psql
+sudo mysql
 ```
 
 ```sql
-CREATE USER easypro WITH PASSWORD 'YOUR_STRONG_PASSWORD';
-CREATE DATABASE easypro OWNER easypro;
-GRANT ALL PRIVILEGES ON DATABASE easypro TO easypro;
-\q
+CREATE DATABASE easypro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'easypro'@'localhost' IDENTIFIED BY 'YOUR_STRONG_PASSWORD';
+GRANT ALL PRIVILEGES ON easypro.* TO 'easypro'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
 ```
 
-Managed PostgreSQL ашиглаж байвал зөвхөн `.env` дээр host/user/password тохируулна.
+Managed MySQL (DigitalOcean, RDS гэх мэт) ашиглаж байвал зөвхөн `.env` дээр host/user/password тохируулна.
 
 ---
 
@@ -90,13 +91,12 @@ DJANGO_SECRET_KEY=generate-a-long-random-string-here
 DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=api.easypro.mn,127.0.0.1
 
-POSTGRES_DB=easypro
-POSTGRES_USER=easypro
-POSTGRES_PASSWORD=YOUR_STRONG_PASSWORD
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-
-USE_SQLITE=false
+DB_ENGINE=mysql
+MYSQL_DB=easypro
+MYSQL_USER=easypro
+MYSQL_PASSWORD=YOUR_STRONG_PASSWORD
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
 
 CORS_ALLOWED_ORIGINS=https://easypro.mn,https://www.easypro.mn
 
@@ -179,8 +179,8 @@ sudo nano /etc/systemd/system/easypro-gunicorn.service
 ```ini
 [Unit]
 Description=EasyPro Gunicorn (api.easypro.mn)
-After=network.target postgresql.service
-Requires=postgresql.service
+After=network.target mysql.service
+Requires=mysql.service
 
 [Service]
 User=ubuntu
@@ -356,7 +356,7 @@ sudo systemctl status easypro-gunicorn
 | `DisallowedHost` | `.env` → `DJANGO_ALLOWED_HOSTS=api.easypro.mn` |
 | CORS алдаа | `.env` → `CORS_ALLOWED_ORIGINS` дээр frontend URL нэм |
 | Static/admin CSS алдаа | `python manage.py collectstatic --noinput` дахин ажиллуул |
-| DB холбогдохгүй | PostgreSQL ажиллаж байгаа эсэх, `.env` credential шалга |
+| DB холбогдохгүй | MySQL ажиллаж байгаа эсэх, `DB_ENGINE=mysql`, `MYSQL_*` credential шалга |
 
 ---
 
