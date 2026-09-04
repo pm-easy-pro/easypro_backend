@@ -248,6 +248,13 @@ server {
         proxy_pass http://easypro_backend;
     }
 
+    # Django admin CSS/JS (collectstatic хийсний дараа)
+    location /static/ {
+        alias /home/ubuntu/easypro_backend/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
     # Spaces ашиглахгүй бол локал media serve хийнэ
     location /media/ {
         alias /home/ubuntu/easypro_backend/media/;
