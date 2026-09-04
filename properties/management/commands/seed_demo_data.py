@@ -4,63 +4,14 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from accounts.models import Agent
+from locations.data.master_locations import POPULAR_LOCATIONS
 from locations.models import Location, LocationAlias
 from properties.models import Property
 
 User = get_user_model()
 
 
-LOCATION_DATA = [
-    {
-        "district": "hud",
-        "official_address": "ХУД 11-р хороо",
-        "latitude": Decimal("47.886300"),
-        "longitude": Decimal("106.905700"),
-        "aliases": ["Зайсан толгой", "River Garden", "Зайсан", "Zaisan"],
-    },
-    {
-        "district": "hud",
-        "official_address": "Marshall Town",
-        "latitude": Decimal("47.888100"),
-        "longitude": Decimal("106.912400"),
-        "aliases": ["Маршал таун", "Marshall"],
-    },
-    {
-        "district": "hud",
-        "official_address": "Bella Vista",
-        "latitude": Decimal("47.884500"),
-        "longitude": Decimal("106.918200"),
-        "aliases": ["Белла Виста", "Bella"],
-    },
-    {
-        "district": "bayanzurkh",
-        "official_address": "Encanto",
-        "latitude": Decimal("47.918600"),
-        "longitude": Decimal("106.945300"),
-        "aliases": ["Энканто", "Encanto Town"],
-    },
-    {
-        "district": "bayanzurkh",
-        "official_address": "Olympic Residence",
-        "latitude": Decimal("47.921200"),
-        "longitude": Decimal("106.938700"),
-        "aliases": ["Олимпик резидэнс", "Olympic"],
-    },
-    {
-        "district": "bayanzurkh",
-        "official_address": "Tokyo Town",
-        "latitude": Decimal("47.915800"),
-        "longitude": Decimal("106.952100"),
-        "aliases": ["Токио таун", "Tokyo"],
-    },
-    {
-        "district": "bayanzurkh",
-        "official_address": "Нарны хороолол",
-        "latitude": Decimal("47.913400"),
-        "longitude": Decimal("106.928900"),
-        "aliases": ["Narnii Horoolol", "Нарны"],
-    },
-]
+LOCATION_DATA = POPULAR_LOCATIONS
 
 PAYMENT_TERM_POOLS = [
     ["cash", "bank_loan"],

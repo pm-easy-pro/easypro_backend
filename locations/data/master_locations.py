@@ -1,0 +1,156 @@
+from decimal import Decimal
+
+# Алдартай хотхон, байр, бүс — alias-тай хайлтанд
+POPULAR_LOCATIONS = [
+    {
+        "district": "hud",
+        "official_address": "ХУД 11-р хороо",
+        "latitude": Decimal("47.886300"),
+        "longitude": Decimal("106.905700"),
+        "aliases": ["Зайсан толгой", "River Garden", "Зайсан", "Zaisan"],
+    },
+    {
+        "district": "hud",
+        "official_address": "Marshall Town",
+        "latitude": Decimal("47.888100"),
+        "longitude": Decimal("106.912400"),
+        "aliases": ["Маршал таун", "Marshall"],
+    },
+    {
+        "district": "hud",
+        "official_address": "Bella Vista",
+        "latitude": Decimal("47.884500"),
+        "longitude": Decimal("106.918200"),
+        "aliases": ["Белла Виста", "Bella"],
+    },
+    {
+        "district": "bayanzurkh",
+        "official_address": "Encanto",
+        "latitude": Decimal("47.918600"),
+        "longitude": Decimal("106.945300"),
+        "aliases": ["Энканто", "Encanto Town"],
+    },
+    {
+        "district": "bayanzurkh",
+        "official_address": "Olympic Residence",
+        "latitude": Decimal("47.921200"),
+        "longitude": Decimal("106.938700"),
+        "aliases": ["Олимпик резидэнс", "Olympic"],
+    },
+    {
+        "district": "bayanzurkh",
+        "official_address": "Tokyo Town",
+        "latitude": Decimal("47.915800"),
+        "longitude": Decimal("106.952100"),
+        "aliases": ["Токио таун", "Tokyo"],
+    },
+    {
+        "district": "bayanzurkh",
+        "official_address": "Нарны хороолол",
+        "latitude": Decimal("47.913400"),
+        "longitude": Decimal("106.928900"),
+        "aliases": ["Narnii Horoolol", "Нарны"],
+    },
+    {
+        "district": "sukhbaatar",
+        "official_address": "Blue Sky Tower",
+        "latitude": Decimal("47.918900"),
+        "longitude": Decimal("106.917600"),
+        "aliases": ["Blue Sky", "Блю Скай"],
+    },
+    {
+        "district": "sukhbaatar",
+        "official_address": "Central Tower",
+        "latitude": Decimal("47.919500"),
+        "longitude": Decimal("106.918800"),
+        "aliases": ["Central Tower UB", "Төв цамхаг"],
+    },
+    {
+        "district": "bayangol",
+        "official_address": "3-р микрорайон",
+        "latitude": Decimal("47.913800"),
+        "longitude": Decimal("106.868900"),
+        "aliases": ["3 micro", "3 microdistrict"],
+    },
+    {
+        "district": "chingeltei",
+        "official_address": "Яармаг",
+        "latitude": Decimal("47.933500"),
+        "longitude": Decimal("106.889200"),
+        "aliases": ["Yarmag", "Яармагийн"],
+    },
+    {
+        "district": "songinokhairkhan",
+        "official_address": "Баянхошуу",
+        "latitude": Decimal("47.948200"),
+        "longitude": Decimal("106.812400"),
+        "aliases": ["Baynkhoshuu"],
+    },
+]
+
+# УБ дүүргийн хороо — зар оруулах формтой таарах "{label}, {n}-р хороо"
+UB_DISTRICTS = [
+    {
+        "district": "bayangol",
+        "label": "Баянгол",
+        "khoroo_count": 34,
+        "latitude": Decimal("47.913500"),
+        "longitude": Decimal("106.870500"),
+    },
+    {
+        "district": "bayanzurkh",
+        "label": "Баянзүрх",
+        "khoroo_count": 43,
+        "latitude": Decimal("47.921500"),
+        "longitude": Decimal("106.952000"),
+    },
+    {
+        "district": "songinokhairkhan",
+        "label": "Сонгинохайрхан",
+        "khoroo_count": 43,
+        "latitude": Decimal("47.940000"),
+        "longitude": Decimal("106.800000"),
+    },
+    {
+        "district": "hud",
+        "label": "Хан-Уул",
+        "khoroo_count": 25,
+        "latitude": Decimal("47.886000"),
+        "longitude": Decimal("106.905000"),
+    },
+    {
+        "district": "sukhbaatar",
+        "label": "Сүхбаатар",
+        "khoroo_count": 20,
+        "latitude": Decimal("47.921000"),
+        "longitude": Decimal("106.917000"),
+    },
+    {
+        "district": "chingeltei",
+        "label": "Чингэлтэй",
+        "khoroo_count": 24,
+        "latitude": Decimal("47.935000"),
+        "longitude": Decimal("106.905000"),
+    },
+    {
+        "district": "nalaikh",
+        "label": "Налайх",
+        "khoroo_count": 8,
+        "latitude": Decimal("47.772000"),
+        "longitude": Decimal("107.252000"),
+    },
+    {
+        "district": "baganuur",
+        "label": "Багануур",
+        "khoroo_count": 5,
+        "latitude": Decimal("47.790000"),
+        "longitude": Decimal("108.350000"),
+    },
+    {
+        "district": "bagakhangai",
+        "label": "Багахангай",
+        "khoroo_count": 2,
+        "latitude": Decimal("47.350000"),
+        "longitude": Decimal("106.050000"),
+    },
+]
