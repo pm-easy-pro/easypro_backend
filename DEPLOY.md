@@ -3,6 +3,8 @@
 Production API: **https://api.easypro.mn**  
 Кодын байршил: **/home/ubuntu/easypro_backend**
 
+> Production өгөгдлийн бодлого (backup, хориглосон командууд): [`docs/PRODUCTION.md`](docs/PRODUCTION.md)
+
 ---
 
 ## 1. Урьдчилсан шаардлага

@@ -1,0 +1,51 @@
+---
+description: Production өгөгдөл хамгаалах — устгал, flush, demo seed хориг
+alwaysApply: true
+---
+
+# Production өгөгдөл хамгаалах
+
+EasyPro **production дээр ажиллаж эхэлсэн**. Бодит хэрэглэгч, зар, байршил, subscription өгөгдөл байна. AI болон хөгжүүлэгч **өгөгдөл устгах, дахин seed хийх, DB reset** зэрэг үйлдлийг анхдагчаар хийх ёсгүй.
+
+## Хэзээ ч автоматаар бүү хий
+
+- `python manage.py flush`
+- `migrate` буцаах / migration файлыг production DB-д гараар устгах
+- `DROP DATABASE`, `TRUNCATE`, bulk `DELETE` SQL
+- `seed_demo_data` production сервер дээр (`DEBUG=False`)
+- `.env` production утгуудыг commit, log, эсвэл chat-д бичих
+- Git `push --force` on `main`, `hard reset` on shared branches
+
+## Зөвшөөрөлгүйгээр бүү санал болго
+
+Дараах зүйлсийг хэрэглэгч **тодорхой, бичгээр** хүсэхгүй л бол бүү санал болго:
+
+- Бүх зар/хэрэглэгчийг цэвэрлэх
+- DB-ийг demo-оор дахин дүүргэх
+- Production дээр `seed_demo_data` ажиллуулах
+
+## Зөвшөөрөгдсөн production үйлдлүүд
+
+| Үйлдэл | Тайлбар |
+|--------|---------|
+| `python manage.py migrate` | Зөвхөн шинэ migration deploy; өмнө backup |
+| `python manage.py seed_master_data` | Idempotent: байршил/багц **update_or_create** |
+| `collectstatic`, Gunicorn/Nginx reload | Код deploy |
+| Schema өөрчлөлт | Forward migration + backup төлөвлөгөө |
+
+## Demo vs master seed
+
+- **`seed_master_data`** — production-д зөв (шинэ байршил/багц нэмэх, одоогийг шинэчлэх).
+- **`seed_demo_data`** — **зөвхөн локал/dev** (`DEBUG=True`). Demo хэрэглэгч + зар үүсгэнэ.
+
+## Migration
+
+- Data migration (`RunPython`) бичихдээ **backward-safe** байлга; устгах логик бүү оруул.
+- Production-д migration ажиллуулахаас өмнө: backup эсвэл snapshot заавал сануулах.
+- Agent shell дээр production DB руу холбогдсон эсэхийг `.env` / `DJANGO_DEBUG` / host-оор шалга.
+
+## Алдаа гарвал
+
+1. Өгөгдөл устгах шийдэл бүү санал болго.
+2. Rollback = код буцаах + migration-ийн урвуу төлөвлөгөө (backup-с restore).
+3. Дэлгэрэнгүй: `docs/PRODUCTION.md`, skill `.cursor/skills/easypro-production/`.

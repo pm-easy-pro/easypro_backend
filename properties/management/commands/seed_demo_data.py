@@ -1,7 +1,8 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from accounts.models import Agent
 from locations.data.master_locations import POPULAR_LOCATIONS
@@ -261,9 +262,26 @@ IMAGE_POOL = [
 
 
 class Command(BaseCommand):
-    help = "Seed Mongolian demo locations and properties"
+    help = (
+        "Demo байршил, агент, хэрэглэгч, зар (зөвхөн хөгжүүлэлт). "
+        "Production (DEBUG=False) дээр default-оор ажиллахгүй."
+    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help="DEBUG=False үед ч ажиллуулах (production — маш болгоомжтой)",
+        )
 
     def handle(self, *args, **options):
+        if not settings.DEBUG and not options["force"]:
+            raise CommandError(
+                "seed_demo_data нь production-д зориулагдаагүй (DJANGO_DEBUG=False). "
+                "Локал dev ашиглана уу, эсвэл маш болгоомжтой --force. "
+                "Production master data: seed_master_data"
+            )
+
         self.stdout.write("Seeding locations...")
         location_map = {}
         for item in LOCATION_DATA:
