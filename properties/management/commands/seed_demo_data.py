@@ -67,7 +67,7 @@ PROPERTY_TEMPLATES = [
         "has_elevator": True,
         "window_count": 6,
         "bathroom_count": 2,
-        "view_direction": "city",
+        "view_directions": ["city"],
         "garage": True,
         "balcony": True,
         "is_vip": True,
@@ -86,7 +86,7 @@ PROPERTY_TEMPLATES = [
         "has_elevator": True,
         "window_count": 4,
         "bathroom_count": 1,
-        "view_direction": "south",
+        "view_directions": ["south"],
         "furnished": True,
         "aliases_extra": ["Белла Виста"],
     },
@@ -103,7 +103,7 @@ PROPERTY_TEMPLATES = [
         "has_elevator": True,
         "window_count": 5,
         "bathroom_count": 2,
-        "view_direction": "east",
+        "view_directions": ["east", "south"],
         "is_verified": True,
         "aliases_extra": ["Энканто"],
     },
@@ -120,7 +120,7 @@ PROPERTY_TEMPLATES = [
         "has_elevator": True,
         "window_count": 7,
         "bathroom_count": 2,
-        "view_direction": "panoramic",
+        "view_directions": ["panoramic", "city"],
         "is_vip": True,
         "is_verified": True,
         "aliases_extra": ["Олимпик"],
@@ -561,11 +561,11 @@ class Command(BaseCommand):
                         if tmpl.get("property_type") == "apartment"
                         else None,
                     ),
-                    "view_direction": "" if is_land else tmpl.get(
-                        "view_direction",
-                        ["south", "east", "north", "west"][idx % 4]
+                    "view_directions": [] if is_land else tmpl.get(
+                        "view_directions",
+                        [["south"], ["east", "west"], ["north"], ["south", "east"]][idx % 4]
                         if tmpl.get("property_type") == "apartment"
-                        else "",
+                        else [],
                     ),
                     "garage": False if is_land else tmpl.get("garage", False),
                     "balcony": False if is_land else tmpl.get("balcony", False),

@@ -11,9 +11,7 @@ class PropertyListSerializer(serializers.ModelSerializer):
     listing_type_display = serializers.CharField(source="get_listing_type_display", read_only=True)
     property_type_display = serializers.CharField(source="get_property_type_display", read_only=True)
     condition_display = serializers.CharField(source="get_condition_display", read_only=True)
-    view_direction_display = serializers.CharField(
-        source="get_view_direction_display", read_only=True
-    )
+    view_directions_display = serializers.SerializerMethodField()
     listing_owner_display = serializers.CharField(
         source="get_listing_owner_type_display", read_only=True
     )
@@ -55,8 +53,8 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "has_elevator",
             "window_count",
             "bathroom_count",
-            "view_direction",
-            "view_direction_display",
+            "view_directions",
+            "view_directions_display",
             "garage",
             "building_type",
             "balcony",
@@ -80,6 +78,9 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "images",
             "created_at",
         ]
+
+    def get_view_directions_display(self, obj):
+        return obj.view_directions_display
 
     def get_thumbnail_url(self, obj):
         request = self.context.get("request")
@@ -119,6 +120,7 @@ class PropertyDetailSerializer(PropertyListSerializer):
 class PropertyCreateSerializer(serializers.ModelSerializer):
     unofficial_addresses = serializers.JSONField(required=False)
     images = serializers.JSONField(required=False)
+    view_directions = serializers.JSONField(required=False)
     floor = serializers.IntegerField(required=False, allow_null=True)
     total_floor = serializers.IntegerField(required=False, allow_null=True)
     window_count = serializers.IntegerField(required=False, allow_null=True)
@@ -148,7 +150,7 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             "has_elevator",
             "window_count",
             "bathroom_count",
-            "view_direction",
+            "view_directions",
             "garage",
             "balcony",
             "furnished",
@@ -215,6 +217,25 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 return [u.strip() for u in value.split(",") if u.strip()]
         return value or []
+
+    def validate_view_directions(self, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            import json
+
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [v.strip() for v in value.split(",") if v.strip()]
+        valid = {choice[0] for choice in Property.VIEW_DIRECTION_CHOICES if choice[0]}
+        cleaned: list[str] = []
+        for item in value:
+            if item not in valid:
+                raise serializers.ValidationError(f"Буруу чиглэл: {item}")
+            if item not in cleaned:
+                cleaned.append(item)
+        return cleaned
 
     def validate(self, attrs):
         owner_type = attrs.get("listing_owner_type", Property.LISTING_OWNER_OWNER)
@@ -307,6 +328,7 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             else:
                 attrs["land_contract_start"] = None
                 attrs["land_contract_end"] = None
+            attrs["view_directions"] = []
 
         return attrs
 
@@ -339,6 +361,7 @@ class PropertyManageSerializer(serializers.ModelSerializer):
     unofficial_addresses = serializers.JSONField(required=False)
     images = serializers.JSONField(required=False)
     payment_terms = serializers.JSONField(required=False)
+    view_directions = serializers.JSONField(required=False)
 
     class Meta:
         model = Property
@@ -365,7 +388,7 @@ class PropertyManageSerializer(serializers.ModelSerializer):
             "has_elevator",
             "window_count",
             "bathroom_count",
-            "view_direction",
+            "view_directions",
             "garage",
             "balcony",
             "furnished",
@@ -452,6 +475,25 @@ class PropertyManageSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 return [u.strip() for u in value.split(",") if u.strip()]
         return value or []
+
+    def validate_view_directions(self, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            import json
+
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [v.strip() for v in value.split(",") if v.strip()]
+        valid = {choice[0] for choice in Property.VIEW_DIRECTION_CHOICES if choice[0]}
+        cleaned: list[str] = []
+        for item in value:
+            if item not in valid:
+                raise serializers.ValidationError(f"Буруу чиглэл: {item}")
+            if item not in cleaned:
+                cleaned.append(item)
+        return cleaned
 
     def create(self, validated_data):
         validated_data.setdefault("status", "active")

@@ -100,12 +100,10 @@ class Property(BaseModel):
         (VIEW_MOUNTAIN, "Уулын үзэсгэлэн"),
         (VIEW_COURTYARD, "Дотоод талбай"),
     ]
-    view_direction = models.CharField(
-        max_length=20,
-        choices=VIEW_DIRECTION_CHOICES,
+    view_directions = models.JSONField(
+        default=list,
         blank=True,
-        default="",
-        db_index=True,
+        help_text="Цонхны харагдац — олон чиглэл (north, south, …)",
     )
 
     garage = models.BooleanField(default=False)
@@ -211,6 +209,18 @@ class Property(BaseModel):
         ordering = ["-created_at"]
         verbose_name = "Үл хөдлөх хөрөнгө"
         verbose_name_plural = "Үл хөдлөх хөрөнгүүд"
+
+    def get_view_direction_labels(self):
+        labels = dict(self.VIEW_DIRECTION_CHOICES)
+        return [
+            labels.get(value, value)
+            for value in (self.view_directions or [])
+            if value and value in labels
+        ]
+
+    @property
+    def view_directions_display(self):
+        return ", ".join(self.get_view_direction_labels())
 
     def __str__(self):
         return self.title
