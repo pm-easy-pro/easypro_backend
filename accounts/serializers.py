@@ -429,6 +429,7 @@ class MeSerializer(serializers.ModelSerializer):
     agent_profile = AgentSummarySerializer(read_only=True)
     is_company_admin = serializers.SerializerMethodField()
     display_name = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -440,6 +441,7 @@ class MeSerializer(serializers.ModelSerializer):
             "last_name",
             "phone",
             "display_name",
+            "avatar_url",
             "agent_profile",
             "is_staff",
             "is_company_admin",
@@ -460,6 +462,12 @@ class MeSerializer(serializers.ModelSerializer):
             return profile.display_name or profile.company_name
         full = obj.get_full_name().strip()
         return full or obj.username
+
+    def get_avatar_url(self, obj):
+        profile = getattr(obj, "agent_profile", None)
+        if profile and profile.avatar:
+            return absolute_media_url(self.context.get("request"), profile.avatar)
+        return absolute_media_url(self.context.get("request"), obj.avatar)
 
 
 class ProfileUpdateSerializer(serializers.Serializer):

@@ -43,3 +43,7 @@
 
 - `.cursor/rules/production-data-safety.mdc`
 - `AGENTS.md` (repo root)
+
+## Roadmap
+
+Monorepo workspace: [`docs/ROADMAP-2026-Q4.md`](../../docs/ROADMAP-2026-Q4.md) (wishlist, analytics, mobile)

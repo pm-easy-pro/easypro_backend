@@ -59,7 +59,7 @@ class RegisterView(APIView):
 class MeView(APIView):
     def get(self, request):
         user = User.objects.select_related("agent_profile__organization").get(pk=request.user.pk)
-        return Response(MeSerializer(user).data)
+        return Response(MeSerializer(user, context={"request": request}).data)
 
     def patch(self, request):
         user = User.objects.select_related("agent_profile__organization").get(pk=request.user.pk)
@@ -67,7 +67,7 @@ class MeView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.update(user, serializer.validated_data)
         user = User.objects.select_related("agent_profile__organization").get(pk=user.pk)
-        return Response(MeSerializer(user).data)
+        return Response(MeSerializer(user, context={"request": request}).data)
 
 
 class AgentListView(generics.ListAPIView):
