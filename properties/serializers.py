@@ -315,10 +315,6 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             getattr(self.instance, "property_type", None) if self.instance else None,
         )
         if property_type == Property.PROPERTY_LAND:
-            if not attrs.get("parcel_number") and not (self.instance and self.instance.parcel_number):
-                raise serializers.ValidationError(
-                    {"parcel_number": "Нэгж талбарын дугаар оруулна уу."}
-                )
             land_right = attrs.get(
                 "land_right_type",
                 getattr(self.instance, "land_right_type", "") if self.instance else "",
@@ -341,14 +337,6 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
                         start = self.instance.land_contract_start
                     if end is None:
                         end = self.instance.land_contract_end
-                if not start or not end:
-                    raise serializers.ValidationError(
-                        {
-                            "land_contract_start": (
-                                "Эзэмших/Ашиглах эрхийн гэрээний огноо оруулна уу."
-                            )
-                        }
-                    )
                 if start and end and start > end:
                     raise serializers.ValidationError(
                         {"land_contract_end": "Дуусах огноо эхлэх огнооноос хойш байх ёстой."}
