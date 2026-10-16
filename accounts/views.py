@@ -57,6 +57,8 @@ class RegisterView(APIView):
 
 
 class MeView(APIView):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
     def get(self, request):
         user = User.objects.select_related("agent_profile__organization").get(pk=request.user.pk)
         return Response(MeSerializer(user, context={"request": request}).data)

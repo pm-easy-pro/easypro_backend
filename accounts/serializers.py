@@ -59,6 +59,7 @@ class AgentSummarySerializer(serializers.ModelSerializer):
             "phone",
             "email",
             "address",
+            "bio",
             "slug",
             "is_verified",
             "membership_status",
@@ -492,7 +493,15 @@ class ProfileUpdateSerializer(serializers.Serializer):
     )
     display_name = serializers.CharField(required=False, allow_blank=True, max_length=255)
     title = serializers.CharField(required=False, allow_blank=True, max_length=120)
+    bio = serializers.CharField(required=False, allow_blank=True)
     invite_code = serializers.CharField(required=False, allow_blank=True)
+    avatar = serializers.ImageField(required=False, allow_null=True)
+    clear_avatar = serializers.BooleanField(required=False, default=False)
+
+    def validate_clear_avatar(self, value):
+        if isinstance(value, str):
+            return value.lower() in ("1", "true", "yes", "on")
+        return bool(value)
 
     def validate(self, attrs):
         profile_type = attrs.get("profile_type")
@@ -534,8 +543,14 @@ class ProfileUpdateSerializer(serializers.Serializer):
         invite = validated_data.pop("invite", None)
         validated_data.pop("invite_code", None)
         profile_type = validated_data.pop("profile_type", None)
+        has_display_name = "display_name" in validated_data
+        has_title = "title" in validated_data
+        has_bio = "bio" in validated_data
         display_name = validated_data.pop("display_name", "")
         title = validated_data.pop("title", "")
+        bio = validated_data.pop("bio", "")
+        avatar = validated_data.pop("avatar", None)
+        clear_avatar = validated_data.pop("clear_avatar", False)
 
         with transaction.atomic():
             if "first_name" in validated_data:
@@ -577,6 +592,45 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 InviteCode.objects.filter(pk=invite.pk).update(uses_count=F("uses_count") + 1)
                 if not user.first_name:
                     user.first_name = display_name
+
+            agent = getattr(user, "agent_profile", None)
+            if agent and agent.agent_type == Agent.TYPE_INDIVIDUAL and not invite:
+                agent_updates = []
+                if has_display_name:
+                    agent.display_name = (display_name or "").strip()
+                    agent_updates.append("display_name")
+                if has_title:
+                    agent.title = (title or "").strip()
+                    agent_updates.append("title")
+                if has_bio:
+                    agent.bio = bio or ""
+                    agent_updates.append("bio")
+                if "email" in validated_data:
+                    agent.email = user.email or ""
+                    agent_updates.append("email")
+                if clear_avatar and not avatar:
+                    if agent.avatar:
+                        agent.avatar.delete(save=False)
+                    agent.avatar = None
+                    agent_updates.append("avatar")
+                elif avatar is not None:
+                    if agent.avatar:
+                        agent.avatar.delete(save=False)
+                    agent.avatar = avatar
+                    agent_updates.append("avatar")
+                if agent_updates:
+                    agent_updates.append("updated_at")
+                    agent.save(update_fields=list(dict.fromkeys(agent_updates)))
+            elif not agent:
+                # Regular user avatar on User model
+                if clear_avatar and not avatar:
+                    if user.avatar:
+                        user.avatar.delete(save=False)
+                    user.avatar = None
+                elif avatar is not None:
+                    if user.avatar:
+                        user.avatar.delete(save=False)
+                    user.avatar = avatar
 
             if profile_type in ("owner", "agent") or invite:
                 user.profile_completed = True
