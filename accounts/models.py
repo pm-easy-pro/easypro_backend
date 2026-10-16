@@ -15,15 +15,52 @@ class User(AbstractUser):
         default=False,
         help_text="OTP-өөр бүртгүүлсний дараа профайл бөглөсөн эсэх",
     )
+    agent_pin_hash = models.CharField(max_length=128, blank=True, default="")
+    agent_pin_set_at = models.DateTimeField(null=True, blank=True)
+    agent_pin_failed_attempts = models.PositiveSmallIntegerField(default=0)
+    agent_pin_locked_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Хэрэглэгч"
         verbose_name_plural = "Хэрэглэгчид"
 
+    def set_agent_pin(self, raw_pin: str) -> None:
+        from django.contrib.auth.hashers import make_password
+
+        self.agent_pin_hash = make_password(raw_pin)
+        self.agent_pin_set_at = timezone.now()
+        self.agent_pin_failed_attempts = 0
+        self.agent_pin_locked_until = None
+
+    def check_agent_pin(self, raw_pin: str) -> bool:
+        from django.contrib.auth.hashers import check_password
+
+        if not self.agent_pin_hash:
+            return False
+        return check_password(raw_pin, self.agent_pin_hash)
+
+    def has_agent_pin(self) -> bool:
+        return bool(self.agent_pin_hash)
+
 
 class PhoneOTP(models.Model):
+    PURPOSE_LOGIN = "login"
+    PURPOSE_AGENT_PIN_SETUP = "agent_pin_setup"
+    PURPOSE_AGENT_PIN_RESET = "agent_pin_reset"
+    PURPOSE_CHOICES = [
+        (PURPOSE_LOGIN, "Нэвтрэх OTP"),
+        (PURPOSE_AGENT_PIN_SETUP, "Agent PIN тохиргоо"),
+        (PURPOSE_AGENT_PIN_RESET, "Agent PIN reset"),
+    ]
+
     phone = models.CharField(max_length=8, db_index=True)
     code = models.CharField(max_length=6)
+    purpose = models.CharField(
+        max_length=32,
+        choices=PURPOSE_CHOICES,
+        default=PURPOSE_LOGIN,
+        db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     attempts = models.PositiveSmallIntegerField(default=0)

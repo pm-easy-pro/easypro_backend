@@ -9,8 +9,10 @@ from accounts.models import Agent
 from accounts.permissions import (
     IsAuthenticatedManageUser,
     get_company_admin_org,
+    public_properties_queryset,
     scoped_properties_queryset,
     user_can_manage_property,
+    user_can_view_property,
 )
 from locations.models import Location
 
@@ -26,9 +28,7 @@ from .uploads import save_uploaded_images
 
 
 def get_related_properties(property_obj, limit=8):
-    qs = Property.objects.filter(
-        is_active=True,
-        status="active",
+    qs = public_properties_queryset().filter(
         property_type=property_obj.property_type,
     ).exclude(pk=property_obj.pk)
     if property_obj.location_id:
@@ -51,14 +51,13 @@ class PropertyListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         mine = self.request.query_params.get("mine", "").lower() in ("true", "1", "yes")
         if mine:
-            qs = Property.objects.filter(is_active=True).select_related(
-                "location", "agent", "agent__organization", "posted_by"
-            )
+            user = self.request.user
+            if user and user.is_authenticated:
+                qs = scoped_properties_queryset(user)
+            else:
+                qs = Property.objects.none()
         else:
-            qs = (
-                Property.objects.filter(is_active=True, status="active")
-                .select_related("location", "agent", "agent__organization", "posted_by")
-            )
+            qs = public_properties_queryset()
         ordering = self.request.query_params.get("ordering")
         order_field = ORDERING_MAP.get(ordering, "-created_at") if ordering else "-created_at"
         return qs.order_by("-is_vip", order_field)
@@ -100,6 +99,9 @@ class PropertyDetailView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not user_can_view_property(request.user, instance):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
         Property.objects.filter(pk=instance.pk).update(views_count=F("views_count") + 1)
         instance.refresh_from_db()
 

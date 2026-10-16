@@ -76,6 +76,7 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "status",
             "thumbnail_url",
             "images",
+            "visibility_scopes",
             "created_at",
         ]
 
@@ -167,6 +168,7 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             "images",
             "listing_owner_type",
             "agent",
+            "visibility_scopes",
         ]
         read_only_fields = ["id"]
 
@@ -183,6 +185,12 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         "land_contract_end",
     )
 
+    ALLOWED_VISIBILITY = {
+        Property.VIS_PUBLIC,
+        Property.VIS_COMPANY,
+        Property.VIS_NETWORK,
+    }
+
     def to_internal_value(self, data):
         if hasattr(data, "copy"):
             data = data.copy()
@@ -192,6 +200,26 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             if data.get(field) == "":
                 data[field] = None
         return super().to_internal_value(data)
+
+    def validate_visibility_scopes(self, value):
+        if isinstance(value, str):
+            import json
+
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [v.strip() for v in value.split(",") if v.strip()]
+        if not value:
+            return [Property.VIS_PUBLIC]
+        cleaned = []
+        for item in value:
+            if item not in self.ALLOWED_VISIBILITY:
+                raise serializers.ValidationError(f"Буруу visibility: {item}")
+            if item not in cleaned:
+                cleaned.append(item)
+        if not cleaned:
+            return [Property.VIS_PUBLIC]
+        return cleaned
 
     def validate_room_count(self, value):
         if value is None:
@@ -417,6 +445,7 @@ class PropertyManageSerializer(serializers.ModelSerializer):
             "agent_detail",
             "posted_by",
             "posted_by_detail",
+            "visibility_scopes",
             "is_active",
             "created_at",
             "updated_at",
@@ -495,7 +524,31 @@ class PropertyManageSerializer(serializers.ModelSerializer):
                 cleaned.append(item)
         return cleaned
 
+    def validate_visibility_scopes(self, value):
+        if isinstance(value, str):
+            import json
+
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [v.strip() for v in value.split(",") if v.strip()]
+        if not value:
+            return [Property.VIS_PUBLIC]
+        allowed = {
+            Property.VIS_PUBLIC,
+            Property.VIS_COMPANY,
+            Property.VIS_NETWORK,
+        }
+        cleaned = []
+        for item in value:
+            if item not in allowed:
+                raise serializers.ValidationError(f"Буруу visibility: {item}")
+            if item not in cleaned:
+                cleaned.append(item)
+        return cleaned or [Property.VIS_PUBLIC]
+
     def create(self, validated_data):
         validated_data.setdefault("status", "active")
         validated_data.setdefault("is_active", True)
+        validated_data.setdefault("visibility_scopes", [Property.VIS_PUBLIC])
         return super().create(validated_data)

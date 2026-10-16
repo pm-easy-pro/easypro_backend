@@ -17,6 +17,14 @@ from .views import (
     RegisterView,
 )
 from .otp_views import OTPSendView, OTPVerifyView
+from .agent_pin_views import (
+    AgentPinLoginView,
+    AgentPinResetSendOtpView,
+    AgentPinResetVerifyView,
+    AgentPinSetupSendOtpView,
+    AgentPinSetupVerifyView,
+    AgentPinStatusView,
+)
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="auth-register"),
@@ -24,6 +32,28 @@ urlpatterns = [
     path("auth/refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("auth/otp/send/", OTPSendView.as_view(), name="auth-otp-send"),
     path("auth/otp/verify/", OTPVerifyView.as_view(), name="auth-otp-verify"),
+    path("auth/agent/pin/status/", AgentPinStatusView.as_view(), name="agent-pin-status"),
+    path(
+        "auth/agent/pin/setup/send-otp/",
+        AgentPinSetupSendOtpView.as_view(),
+        name="agent-pin-setup-send",
+    ),
+    path(
+        "auth/agent/pin/setup/verify/",
+        AgentPinSetupVerifyView.as_view(),
+        name="agent-pin-setup-verify",
+    ),
+    path("auth/agent/pin/login/", AgentPinLoginView.as_view(), name="agent-pin-login"),
+    path(
+        "auth/agent/pin/reset/send-otp/",
+        AgentPinResetSendOtpView.as_view(),
+        name="agent-pin-reset-send",
+    ),
+    path(
+        "auth/agent/pin/reset/verify/",
+        AgentPinResetVerifyView.as_view(),
+        name="agent-pin-reset-verify",
+    ),
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("agents/", AgentListView.as_view(), name="agent-list"),
     path("agents/manage/", AgentManageListView.as_view(), name="agent-manage-list"),

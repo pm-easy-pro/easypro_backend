@@ -3,6 +3,10 @@ from django.db import models
 from common.models import BaseModel
 
 
+def default_visibility_scopes():
+    return ["public"]
+
+
 class Property(BaseModel):
     LISTING_SELL = "sell"
     LISTING_RENT = "rent"
@@ -190,6 +194,22 @@ class Property(BaseModel):
         default=LISTING_OWNER_OWNER,
         db_index=True,
     )
+
+    VIS_PUBLIC = "public"
+    VIS_COMPANY = "company"
+    VIS_NETWORK = "network"
+    VISIBILITY_CHOICES = [
+        (VIS_PUBLIC, "Нийтэд (Public)"),
+        (VIS_COMPANY, "Company дотор"),
+        (VIS_NETWORK, "Нийт company"),
+    ]
+
+    visibility_scopes = models.JSONField(
+        default=default_visibility_scopes,
+        blank=True,
+        help_text="public | company | network — олон сонголт зөвшөөрнө",
+    )
+
     agent = models.ForeignKey(
         "accounts.Agent",
         on_delete=models.SET_NULL,

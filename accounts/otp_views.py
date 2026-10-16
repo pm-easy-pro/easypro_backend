@@ -13,8 +13,29 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Agent, InviteCode, PhoneOTP
+from .permissions import is_company_admin
 from .serializers import MeSerializer, ProfileUpdateSerializer
 from .sms import SmsSendError, send_sms
+
+
+def portal_user_block_message(user) -> str | None:
+    """Main-site OTP is for consumers only."""
+    if not user:
+        return None
+    if user.is_staff:
+        return "Системийн админ dashboard.easypro.mn руу нэвтэрнэ үү."
+    if is_company_admin(user):
+        return "Компанийн админ company.easypro.mn руу нэвтэрнэ үү."
+    profile = getattr(user, "agent_profile", None)
+    if (
+        profile
+        and profile.agent_type == Agent.TYPE_INDIVIDUAL
+        and profile.is_active
+        and profile.membership_status == Agent.MEMBERSHIP_APPROVED
+    ):
+        return "Агент agent.easypro.mn руу (утас + PIN) нэвтэрнэ үү."
+    return None
+
 
 User = get_user_model()
 
@@ -52,8 +73,18 @@ class OTPSendView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        existing_user = (
+            User.objects.filter(phone=phone).select_related("agent_profile").first()
+            or User.objects.filter(username=phone).select_related("agent_profile").first()
+        )
+        block = portal_user_block_message(existing_user)
+        if block:
+            return Response({"detail": block}, status=status.HTTP_403_FORBIDDEN)
+
         latest = (
-            PhoneOTP.objects.filter(phone=phone, is_used=False)
+            PhoneOTP.objects.filter(
+                phone=phone, purpose=PhoneOTP.PURPOSE_LOGIN, is_used=False
+            )
             .order_by("-created_at")
             .first()
         )
@@ -73,6 +104,7 @@ class OTPSendView(APIView):
         otp = PhoneOTP.objects.create(
             phone=phone,
             code=code,
+            purpose=PhoneOTP.PURPOSE_LOGIN,
             expires_at=timezone.now() + timedelta(seconds=OTP_TTL_SECONDS),
         )
 
@@ -126,7 +158,9 @@ class OTPVerifyView(APIView):
             )
 
         otp = (
-            PhoneOTP.objects.filter(phone=phone, is_used=False)
+            PhoneOTP.objects.filter(
+                phone=phone, purpose=PhoneOTP.PURPOSE_LOGIN, is_used=False
+            )
             .order_by("-created_at")
             .first()
         )
@@ -175,6 +209,12 @@ class OTPVerifyView(APIView):
                     updates.append("phone")
                 if updates:
                     user.save(update_fields=updates)
+
+        block = portal_user_block_message(
+            User.objects.select_related("agent_profile").get(pk=user.pk)
+        )
+        if block:
+            return Response({"detail": block}, status=status.HTTP_403_FORBIDDEN)
 
         tokens = tokens_for_user(user)
         me = MeSerializer(

@@ -100,7 +100,7 @@ MYSQL_PASSWORD=YOUR_STRONG_PASSWORD
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
 
-CORS_ALLOWED_ORIGINS=https://easypro.mn,https://www.easypro.mn
+CORS_ALLOWED_ORIGINS=https://easypro.mn,https://www.easypro.mn,https://agent.easypro.mn,https://company.easypro.mn,https://dashboard.easypro.mn
 
 # DigitalOcean Spaces (зураг CDN) — хоосон үлдвэл /home/ubuntu/easypro_backend/media/ ашиглана
 AWS_ACCESS_KEY_ID=
@@ -303,17 +303,27 @@ Gunicorn socket нь зөвхөн локал (`/run/easypro/`) тул гадна
 
 ## 12. Frontend (Vercel) холбох
 
-Vercel project → **Environment Variables**:
+Vercel project → **Domains**: `easypro.mn`, `www`, `agent.easypro.mn`, `company.easypro.mn`, `dashboard.easypro.mn`.
+
+Cloudflare: `agent` / `company` / `dashboard` CNAME → Vercel.
+
+Vercel → **Environment Variables**:
 
 ```
 NEXT_PUBLIC_API_URL=https://api.easypro.mn/api
+NEXT_PUBLIC_MAIN_ORIGIN=https://easypro.mn
+NEXT_PUBLIC_AGENT_ORIGIN=https://agent.easypro.mn
+NEXT_PUBLIC_COMPANY_ORIGIN=https://company.easypro.mn
+NEXT_PUBLIC_DASHBOARD_ORIGIN=https://dashboard.easypro.mn
 ```
 
 Backend `.env` дээр frontend domain CORS-д байгаа эсэхийг шалга:
 
 ```
-CORS_ALLOWED_ORIGINS=https://easypro.mn,https://www.easypro.mn
+CORS_ALLOWED_ORIGINS=https://easypro.mn,https://www.easypro.mn,https://agent.easypro.mn,https://company.easypro.mn,https://dashboard.easypro.mn
 ```
+
+Порталууд: хэрэглэгч OTP → easypro.mn; агент PIN → agent.easypro.mn; компани username/password → company.easypro.mn; staff → dashboard.easypro.mn.
 
 ---
 
