@@ -23,6 +23,7 @@ from .agent_pin_views import (
     AgentPinResetVerifyView,
     AgentPinSetupSendOtpView,
     AgentPinSetupVerifyView,
+    AgentPinStaffSetView,
     AgentPinStatusView,
 )
 
@@ -57,6 +58,11 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("agents/", AgentListView.as_view(), name="agent-list"),
     path("agents/manage/", AgentManageListView.as_view(), name="agent-manage-list"),
+    path(
+        "agents/manage/<int:pk>/pin/",
+        AgentPinStaffSetView.as_view(),
+        name="agent-manage-pin-set",
+    ),
     path(
         "agents/companies/manage/",
         CompanyManageListCreateView.as_view(),

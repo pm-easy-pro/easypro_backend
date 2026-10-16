@@ -400,3 +400,60 @@ class AgentPinResetVerifyView(APIView):
             ]
         )
         return Response(me_payload(user), status=status.HTTP_200_OK)
+
+
+class AgentPinStaffSetView(APIView):
+    """Staff / company admin: set or reset an individual agent's PIN without SMS."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        from .permissions import can_manage_agents, scoped_agents_queryset
+
+        if not can_manage_agents(request.user):
+            return Response(
+                {"detail": "Зөвшөөрөлгүй."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        pin = (request.data.get("pin") or "").strip()
+        pin_confirm = (request.data.get("pin_confirm") or "").strip()
+        pin_err = validate_pin_pair(pin, pin_confirm)
+        if pin_err:
+            return Response({"detail": pin_err}, status=status.HTTP_400_BAD_REQUEST)
+
+        agent = (
+            scoped_agents_queryset(request.user)
+            .filter(pk=pk, agent_type=Agent.TYPE_INDIVIDUAL)
+            .select_related("user")
+            .first()
+        )
+        if not agent or not agent.user_id:
+            return Response(
+                {"detail": "Агент олдсонгүй."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = agent.user
+        was_set = user.has_agent_pin()
+        user.set_agent_pin(pin)
+        if agent.phone and user.phone != agent.phone:
+            user.phone = normalize_phone(agent.phone) or user.phone
+        user.save(
+            update_fields=[
+                "agent_pin_hash",
+                "agent_pin_set_at",
+                "agent_pin_failed_attempts",
+                "agent_pin_locked_until",
+                "phone",
+            ]
+        )
+        return Response(
+            {
+                "detail": "PIN шинэчлэгдлээ." if was_set else "PIN тохируулагдлаа.",
+                "agent_id": agent.id,
+                "has_pin": True,
+                "pin_set_at": user.agent_pin_set_at,
+            },
+            status=status.HTTP_200_OK,
+        )

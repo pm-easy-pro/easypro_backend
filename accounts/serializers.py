@@ -82,6 +82,8 @@ class MembershipRequestSerializer(AgentSummarySerializer):
     reviewed_by_username = serializers.CharField(
         source="reviewed_by.username", read_only=True, default=None
     )
+    has_pin = serializers.SerializerMethodField()
+    pin_set_at = serializers.SerializerMethodField()
 
     class Meta(AgentSummarySerializer.Meta):
         fields = AgentSummarySerializer.Meta.fields + [
@@ -89,7 +91,17 @@ class MembershipRequestSerializer(AgentSummarySerializer):
             "username",
             "reviewed_at",
             "reviewed_by_username",
+            "has_pin",
+            "pin_set_at",
         ]
+
+    def get_has_pin(self, obj):
+        user = getattr(obj, "user", None)
+        return bool(user and user.has_agent_pin())
+
+    def get_pin_set_at(self, obj):
+        user = getattr(obj, "user", None)
+        return getattr(user, "agent_pin_set_at", None) if user else None
 
 
 class PropertyAgentSerializer(AgentSummarySerializer):
