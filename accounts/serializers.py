@@ -621,8 +621,8 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 if agent_updates:
                     agent_updates.append("updated_at")
                     agent.save(update_fields=list(dict.fromkeys(agent_updates)))
-            elif not agent:
-                # Regular user avatar on User model
+            else:
+                # Owner / company-admin / no agent: store on User.avatar
                 if clear_avatar and not avatar:
                     if user.avatar:
                         user.avatar.delete(save=False)

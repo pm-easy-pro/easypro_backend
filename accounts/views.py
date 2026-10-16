@@ -65,7 +65,11 @@ class MeView(APIView):
 
     def patch(self, request):
         user = User.objects.select_related("agent_profile__organization").get(pk=request.user.pk)
-        serializer = ProfileUpdateSerializer(data=request.data, partial=True)
+        # Merge FILES so avatar is always visible to the serializer
+        data = request.data.copy()
+        for key, value in request.FILES.items():
+            data[key] = value
+        serializer = ProfileUpdateSerializer(data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         user = serializer.update(user, serializer.validated_data)
         user = User.objects.select_related("agent_profile__organization").get(pk=user.pk)
