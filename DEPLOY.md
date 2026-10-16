@@ -315,6 +315,8 @@ NEXT_PUBLIC_MAIN_ORIGIN=https://easypro.mn
 NEXT_PUBLIC_AGENT_ORIGIN=https://agent.easypro.mn
 NEXT_PUBLIC_COMPANY_ORIGIN=https://company.easypro.mn
 NEXT_PUBLIC_DASHBOARD_ORIGIN=https://dashboard.easypro.mn
+# Optional — JWT cookie Domain (default .easypro.mn). Shares login across portals.
+# NEXT_PUBLIC_COOKIE_DOMAIN=.easypro.mn
 ```
 
 Backend `.env` дээр frontend domain CORS-д байгаа эсэхийг шалга:
