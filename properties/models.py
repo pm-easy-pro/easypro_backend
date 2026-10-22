@@ -166,6 +166,16 @@ class Property(BaseModel):
         default="",
         db_index=True,
     )
+    has_object = models.BooleanField(
+        default=False,
+        help_text="Газар дээр объект (барилга) байгаа эсэх",
+    )
+    contact_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Энэ зар дээр харагдах утас",
+    )
 
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)

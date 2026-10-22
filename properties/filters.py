@@ -21,6 +21,7 @@ class PropertyFilter(filters.FilterSet):
     payment_terms = filters.CharFilter(method="filter_payment_terms")
     is_verified = filters.BooleanFilter(field_name="is_verified")
     is_vip = filters.BooleanFilter(field_name="is_vip")
+    has_object = filters.BooleanFilter(field_name="has_object")
     agent = filters.NumberFilter(field_name="agent_id")
     posted_by = filters.NumberFilter(field_name="posted_by_id")
     mine = filters.BooleanFilter(method="filter_mine")

@@ -68,6 +68,8 @@ class PropertyListSerializer(serializers.ModelSerializer):
             "land_contract_end",
             "land_use_type",
             "land_use_type_display",
+            "has_object",
+            "contact_phone",
             "latitude",
             "longitude",
             "is_verified",
@@ -162,6 +164,8 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             "land_contract_start",
             "land_contract_end",
             "land_use_type",
+            "has_object",
+            "contact_phone",
             "latitude",
             "longitude",
             "thumbnail",
@@ -345,6 +349,15 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
                 attrs["land_contract_start"] = None
                 attrs["land_contract_end"] = None
             attrs["view_directions"] = []
+            if "has_object" not in attrs and not self.instance:
+                attrs["has_object"] = False
+        else:
+            attrs["has_object"] = False
+
+        phone = attrs.get("contact_phone")
+        if phone is not None:
+            digits = "".join(ch for ch in str(phone) if ch.isdigit())
+            attrs["contact_phone"] = digits[:20]
 
         return attrs
 
@@ -417,6 +430,8 @@ class PropertyManageSerializer(serializers.ModelSerializer):
             "land_contract_end",
             "land_use_type",
             "land_use_type_display",
+            "has_object",
+            "contact_phone",
             "latitude",
             "longitude",
             "is_verified",

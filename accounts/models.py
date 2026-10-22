@@ -120,6 +120,11 @@ class Agent(BaseModel):
         help_text="Жишээ: Platinum agent, Senior broker",
     )
     phone = models.CharField(max_length=20, blank=True)
+    contact_phones = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Нэвтрэх дугаараас гадна зар дээр сонгох нэмэлт дугаарууд",
+    )
     email = models.EmailField(blank=True)
     address = models.CharField(max_length=500, blank=True)
     avatar = models.ImageField(upload_to="agents/avatars/", blank=True, null=True)

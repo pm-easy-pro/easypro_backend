@@ -57,6 +57,7 @@ class AgentSummarySerializer(serializers.ModelSerializer):
             "display_label",
             "organization_name",
             "phone",
+            "contact_phones",
             "email",
             "address",
             "bio",
@@ -497,6 +498,25 @@ class ProfileUpdateSerializer(serializers.Serializer):
     invite_code = serializers.CharField(required=False, allow_blank=True)
     avatar = serializers.ImageField(required=False, allow_null=True)
     clear_avatar = serializers.BooleanField(required=False, default=False)
+    contact_phones = serializers.ListField(
+        child=serializers.CharField(max_length=20),
+        required=False,
+    )
+
+    def validate_contact_phones(self, value):
+        cleaned = []
+        seen = set()
+        for raw in value or []:
+            digits = "".join(ch for ch in str(raw) if ch.isdigit())
+            if len(digits) != 8:
+                raise serializers.ValidationError(f"Дугаар 8 оронтой байх ёстой: {raw}")
+            if digits in seen:
+                continue
+            seen.add(digits)
+            cleaned.append(digits)
+        if len(cleaned) > 8:
+            raise serializers.ValidationError("Хамгийн ихдээ 8 нэмэлт дугаар.")
+        return cleaned
 
     def validate_clear_avatar(self, value):
         if isinstance(value, str):
@@ -551,6 +571,8 @@ class ProfileUpdateSerializer(serializers.Serializer):
         bio = validated_data.pop("bio", "")
         avatar = validated_data.pop("avatar", None)
         clear_avatar = validated_data.pop("clear_avatar", False)
+        has_contact_phones = "contact_phones" in validated_data
+        contact_phones = validated_data.pop("contact_phones", None)
 
         with transaction.atomic():
             if "first_name" in validated_data:
@@ -634,6 +656,13 @@ class ProfileUpdateSerializer(serializers.Serializer):
 
             if profile_type in ("owner", "agent") or invite:
                 user.profile_completed = True
+
+            if has_contact_phones:
+                agent = getattr(user, "agent_profile", None)
+                if agent and agent.agent_type == Agent.TYPE_INDIVIDUAL:
+                    login = "".join(ch for ch in (user.phone or "") if ch.isdigit())
+                    agent.contact_phones = [p for p in (contact_phones or []) if p != login]
+                    agent.save(update_fields=["contact_phones", "updated_at"])
 
             user.save()
 
